@@ -1,0 +1,9 @@
+# ignore without file extensions
+*
+!*.*
+!*/
+
+# ignore build files
+build
+
+nob.old
