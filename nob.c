@@ -33,7 +33,6 @@ int main(int argc, char **argv)
 
     nob_cmd_append(&cmd, SRC_FOLDER "main.c");
     nob_cmd_append(&cmd, SRC_FOLDER "gl.c");
-    nob_cmd_append(&cmd, SRC_FOLDER "read_shader.c");
 
     // statically link glfw
     nob_cmd_append(&cmd, SRC_FOLDER "libglfw3.a");
