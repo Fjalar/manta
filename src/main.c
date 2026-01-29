@@ -1,157 +1,37 @@
-#define RGFW_OPENGL
-#define RGFW_USE_XDL // feel free to remove this line if you don't want to use XDL (-lX11 -lXrandr -lGLX will be required)
-// #define RGFW_ALLOC_DROPFILES
-#define RGFW_IMPLEMENTATION
-// #define RGFW_PRINT_ERRORS
-// #define RGFW_DEBUG
-// #define GL_SILENCE_DEPRECATION
-#include "../include/RGFW.h"
+#define GLAD_GL_IMPLEMENTATION
+#include "../include/glad/gl.h"
+#include "../include/glfw/glfw3.h"
+#include <stdio.h>
 
-
-#define RGL_LOAD_IMPLEMENTATION
-#include "../include/rglLoad.h"
-
-
-#define MULTILINE_STR(...) #__VA_ARGS__
-
-#include "frag.c"
-#include "vert.c"
-
-#include <stdbool.h>
-
-// settings
-const int SCR_WIDTH = 800;
-const int SCR_HEIGHT = 600;
-
-int main(void) {
-    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
-    hints->major = 3;
-    hints->minor = 3;
-    RGFW_setGlobalHints_OpenGL(hints);
-
-	RGFW_window* window = RGFW_createWindow("Manta", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
-    if (window == NULL)
-    {
-        printf("Failed to create RGFW window\n");
-        return -1;
+static void quit(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
-    RGFW_window_setMinSize(window, SCR_WIDTH, SCR_HEIGHT);
-    RGFW_window_setMaxSize(window, SCR_WIDTH, SCR_HEIGHT);
-    RGFW_window_setExitKey(window, RGFW_escape);
-    RGFW_window_makeCurrentContext_OpenGL(window);
+}
 
-    if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_OpenGL)) {
-        printf("Failed to initialize GLAD\n");
-        return -1;
-    }
+int main()
+{
+    glfwInit();
 
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
-    }
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
-    }
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    GLFWwindow *window = glfwCreateWindow(512, 512, "Manta", NULL, NULL);
+    glfwMakeContextCurrent(window);
+    int version = gladLoadGL(glfwGetProcAddress);
+    printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
-    float vertices[] = {
-        -1.0f,  1.0f, 0.0f, // top left
-         3.0f,  1.0f, 0.0f, // top right (outside screen)
-        -1.0f, -3.0f, 0.0f  // bottom left (outside screen)
-    };
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 2,  // first Triangle
-    };
+    glfwSetKeyCallback(window, quit);
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
 
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
-
-
-    // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    // render loop
-    // -----------
-    while (RGFW_window_shouldClose(window) == RGFW_FALSE) {
-        RGFW_event event;
-
-        while (RGFW_window_checkEvent(window, &event)) {
-            if (event.type == RGFW_quit) {
-                break;
-            }
-        }
-
-		// render
-        // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.3, 0.7, 0.3, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        // draw our first triangle
-        glUseProgram(shaderProgram);
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        // glBindVertexArray(0); // no need to unbind it every time
-
-        RGFW_window_swapBuffers_OpenGL(window);
+        glfwSwapBuffers(window);
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteProgram(shaderProgram);
-
-    RGFW_window_close(window);
-    return 0;
+    glfwDestroyWindow(window);
+    glfwTerminate();
 }
