@@ -23,6 +23,13 @@ int main()
     int version = gladLoadGL(glfwGetProcAddress);
     printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
+    int major;
+    int minor;
+    int rev;
+
+    glfwGetVersion(&major, &minor, &rev);
+    printf("GLFW %d.%d.%d\n", major, minor, rev);
+
     glfwSetKeyCallback(window, quit);
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
