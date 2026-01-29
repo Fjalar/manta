@@ -1,6 +1,7 @@
 #define GLAD_GL_IMPLEMENTATION
 #include "../include/glad/gl.h"
 #include "../include/glfw/glfw3.h"
+#include "../include/read_shader.h"
 #include <stdio.h>
 
 static void quit(GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -67,23 +68,9 @@ int main()
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    const char* vertex_shader =
-    "#version 410 core\n"
-    "layout(location = 0) in vec3 vertex_position;"
-    "layout(location = 1) in vec3 vertex_colour;"
-    "out vec3 colour;"
-    "void main() {"
-    "   colour = vertex_colour;"
-    "   gl_Position = vec4(vertex_position, 1.0);"
-    "}";
+    const char* vertex_shader = read_shader("vert.glsl");
 
-    const char* fragment_shader =
-    "#version 410 core\n"
-    "in vec3 colour;"
-    "out vec4 frag_colour;"
-    "void main() {"
-    "   frag_colour = vec4(colour, 1.0);"
-    "}";
+    const char* fragment_shader = read_shader("frag.glsl");
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader, NULL);
