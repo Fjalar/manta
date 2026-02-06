@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     nob_cmd_append(&cmd, "gcc");
 
     // optimization
-    nob_cmd_append(&cmd, "-O3");
+    nob_cmd_append(&cmd, "-s");
 
     nob_cmd_append(&cmd, "-D_GLFW_WAYLAND");
 

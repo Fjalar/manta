@@ -32,12 +32,12 @@ int main()
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
 
-    glClearColor(0.3, 0.7, 0.3, 1.0);
+    glClearColor(1.0, 0.0, 1.0, 1.0);
 
     float points[] = {
-       0.0f,  0.5f,  0.0f, // x,y,z of first point.
-       0.5f, -0.5f,  0.0f, // x,y,z of second point.
-      -0.5f, -0.5f,  0.0f  // x,y,z of third point.
+       -1.0f,  1.0f,  0.0f, // x,y,z of first point.
+       3.0f, 1.0f,  0.0f, // x,y,z of second point.
+      -1.0f, -3.0f,  0.0f  // x,y,z of third point.
     };
 
     float colours[] = {
